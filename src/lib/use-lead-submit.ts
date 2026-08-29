@@ -1,15 +1,15 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { sendLeadDirect } from '@/lib/lead-direct';
+import { postLead } from '@/lib/lead-transport';
 import type { LeadInput } from '@/lib/lead-payload';
 
 export type LeadStatus = 'idle' | 'submitting' | 'success' | 'error';
 
 /**
  * Shared submit pipeline for every form on the site — the dialog and any
- * inline block. API route first; if it reports failure the visitor's own
- * browser posts to the relay, which is immune to serverless-IP blocks.
+ * inline block. Delivery itself lives in lead-transport; this hook owns the
+ * validation and the status the form renders from.
  *
  * Validation lives here too, so the dialog and the inline form can never
  * disagree about what counts as a usable phone number.
@@ -37,23 +37,9 @@ export function useLeadSubmit() {
     setStatus('submitting');
     setError('');
 
-    let delivered = false;
-    let apiError = '';
-    try {
-      const res = await fetch('/api/zayavka', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...lead, website: honeypot }),
-      });
-      const data = await res.json().catch(() => ({}));
-      delivered = res.ok && data.ok;
-      if (!delivered) apiError = data.error || '';
-    } catch {
-      /* network error → fall through to the direct path */
-    }
-    if (!delivered) delivered = await sendLeadDirect(lead);
+    const { ok, error: apiError } = await postLead(lead, honeypot);
 
-    if (delivered) {
+    if (ok) {
       setStatus('success');
       return true;
     }

@@ -1,27 +1,20 @@
 import { NextResponse } from 'next/server';
 import { site } from '@/lib/site';
-import {
-  buildLeadSections,
-  leadSubject,
-  toRelayFields,
-  type LeadInput,
-} from '@/lib/lead-payload';
+import { buildLeadSections, toTelegramMessage, type LeadInput } from '@/lib/lead-payload';
 
 /**
- * Lead intake.
+ * Lead intake. Every enquiry on the site lands in one Telegram group.
  *
- * Delivery today goes through a keyless form relay so the site can go live
- * before the client's mailbox exists. When SMTP credentials land, swap
- * `deliver()` for a nodemailer transport — the payload shape is already fixed
- * by lead-payload, and buildLeadSections() renders the office e-mail.
- *
- * The browser retries through lead-direct if this route reports failure, so a
- * blocked serverless IP never costs a lead.
+ * This has to be a server route and cannot be done from the browser: the bot
+ * token is a credential, and anything the page can read, every visitor can
+ * read. That is also why there is no second, browser-side delivery channel any
+ * more — see lead-transport for what replaced it.
  */
 
 export const runtime = 'nodejs';
 
-const TO = process.env.CONTACT_TO || site.email;
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 /** Crude per-instance throttle — enough to blunt a naive flood. */
 const hits = new Map<string, number[]>();
@@ -95,32 +88,39 @@ export async function POST(req: Request) {
     siteUrl: site.url,
   };
 
-  // buildLeadSections is what the eventual HTML mail renders from; calling it
-  // here keeps the server path honest about the payload it claims to deliver.
-  const sections = buildLeadSections(lead, meta);
-  if (sections.length === 0) {
+  if (buildLeadSections(lead, meta).length === 0) {
     return NextResponse.json({ ok: false, error: 'Порожня заявка.' }, { status: 400 });
   }
 
+  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) {
+    // Loud on the server, quiet to the visitor: a misconfigured deploy is our
+    // problem, and the form should not blame them for it.
+    console.error('[zayavka] TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID не налаштовані');
+    return NextResponse.json({ ok: false, error: '' }, { status: 500 });
+  }
+
   try {
-    const res = await fetch(`https://formsubmit.co/ajax/${TO}`, {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        ...toRelayFields(lead, meta),
-        _subject: leadSubject(lead),
-        _template: 'table',
-        _captcha: 'false',
+        chat_id: TELEGRAM_CHAT_ID,
+        text: toTelegramMessage(lead, meta),
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
       }),
     });
-    const data = (await res.json().catch(() => ({}))) as { success?: string | boolean };
-    const ok = res.ok && (data.success === 'true' || data.success === true);
-    if (!ok) {
+    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string };
+    if (!res.ok || !data.ok) {
+      // `description` is the only thing that says WHY — «chat not found», «bot
+      // was kicked», a parse error in the markup. Dropping it means debugging
+      // a lost lead blind, so it goes to the function log verbatim.
+      console.error('[zayavka] Telegram відмовив:', res.status, data.description ?? '');
       return NextResponse.json({ ok: false, error: '' }, { status: 502 });
     }
     return NextResponse.json({ ok: true });
-  } catch {
-    // The browser will retry through lead-direct.
+  } catch (err) {
+    console.error('[zayavka] Запит до Telegram не пройшов:', err);
     return NextResponse.json({ ok: false, error: '' }, { status: 502 });
   }
 }

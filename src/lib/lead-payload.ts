@@ -1,10 +1,9 @@
 /**
  * Single source of truth for WHAT a lead contains and HOW it is labelled.
  *
- * Both delivery paths build their message from here — the server route
- * (api/zayavka, which renders the HTML mail) and the browser fallback
- * (lead-direct, which hands flat key/value pairs to the relay). Keeping the
- * wording and field order in one place is the point.
+ * The server route (api/zayavka) renders its Telegram message from here, so
+ * the wording and the field order live in one place rather than being
+ * restated by whatever channel happens to carry the lead.
  */
 
 export type LeadSource = {
@@ -101,26 +100,51 @@ export function buildLeadSections(l: LeadInput, meta: LeadMeta): LeadSection[] {
     .filter((s) => s.rows.length > 0);
 }
 
+/* ── Telegram rendering ──────────────────────────────────────────────────
+   Telegram accepts a small HTML subset and is strict about it: an unescaped
+   `<` or a tag it does not know makes it reject the whole message, and the
+   lead is gone. Everything below exists to make that impossible. */
+
+/** Telegram requires &, < and > escaped everywhere, attribute values included. */
+export function escapeHtml(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderValue(row: LeadRow, cap: number): string {
+  const raw = row.value.length > cap ? `${row.value.slice(0, cap)}…` : row.value;
+  const value = escapeHtml(raw);
+
+  // Telegram allows only http, https and tg: links — a tel: href is rejected
+  // outright. <code> is the better answer anyway: it is tap-to-copy, which is
+  // what someone reading the lead on a phone actually wants from a number.
+  if (row.href?.startsWith('tel:')) return `<code>${value}</code>`;
+  if (row.href?.startsWith('http')) return `<a href="${escapeHtml(row.href)}">${value}</a>`;
+  return row.emphasis ? `<b>${value}</b>` : value;
+}
+
+function render(l: LeadInput, meta: LeadMeta, cap: number): string {
+  const lines = [`⚡️ <b>${escapeHtml(leadSubject(l))}</b>`];
+  for (const section of buildLeadSections(l, meta)) {
+    lines.push('', `<b>${escapeHtml(section.title)}</b>`);
+    for (const row of section.rows) {
+      lines.push(`${escapeHtml(row.label)}: ${renderValue(row, cap)}`);
+    }
+  }
+  return lines.join('\n');
+}
+
 /**
- * Flat label→value map for the keyless relay, which renders its OWN table and
- * accepts no custom HTML. Origin first, because "which form / which button" is
- * what the plain table would otherwise bury at the bottom.
+ * The lead as one Telegram message.
+ *
+ * Telegram caps a message at 4096 characters. Trimming the finished HTML would
+ * cut a tag in half and get the message rejected, so the cap is applied to each
+ * VALUE before any tags go on, and tightened until the whole thing fits. The
+ * result is always valid markup, whatever someone types into the comment box.
  */
-export function toRelayFields(l: LeadInput, meta: LeadMeta): Record<string, string> {
-  const out: Record<string, string> = {};
-  const put = (k: string, v?: string) => {
-    if (v) out[k] = v;
-  };
-
-  put('Заявка через', l.context);
-  put('Кнопка', l.source?.button);
-  put('Сторінка', `${pageLabel(l)} — ${pageUrl(l.page, meta.siteUrl)}`);
-  put('Ім’я', l.name);
-  put('Телефон', l.phone);
-  for (const [k, v] of Object.entries(l.fields ?? {})) put(k, v);
-  put('Коментар', l.message);
-  put('Надійшла', meta.sentAt);
-  put('ID тригера', l.source?.id);
-
-  return out;
+export function toTelegramMessage(l: LeadInput, meta: LeadMeta): string {
+  for (const cap of [700, 300, 120]) {
+    const text = render(l, meta, cap);
+    if (text.length <= 4000) return text;
+  }
+  return render(l, meta, 60);
 }

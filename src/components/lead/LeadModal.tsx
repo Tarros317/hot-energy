@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, Check, Loader2, Phone, X } from 'lucide-react';
 import { lockScroll, unlockScroll } from '@/components/layout/SmoothScroll';
-import { sendLeadDirect } from '@/lib/lead-direct';
+import { postLead } from '@/lib/lead-transport';
 import { site } from '@/lib/site';
 import { GLOBAL_LEAD, type LeadContextConfig } from '@/lib/lead-forms';
 import type { LeadInput, LeadSource } from '@/lib/lead-payload';
@@ -169,25 +169,9 @@ export function LeadModalHost() {
       return;
     }
 
-    // Delivery chain: API route first; if it fails the visitor's own browser
-    // posts to the relay, which is immune to serverless-IP blocks.
-    let delivered = false;
-    let apiError = '';
-    try {
-      const res = await fetch('/api/zayavka', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...core, website: fd.get('website') }),
-      });
-      const data = await res.json().catch(() => ({}));
-      delivered = res.ok && data.ok;
-      if (!delivered) apiError = data.error || '';
-    } catch {
-      /* network error → fall through to the direct path */
-    }
-    if (!delivered) delivered = await sendLeadDirect(core);
+    const { ok, error: apiError } = await postLead(core, fd.get('website'));
 
-    if (delivered) {
+    if (ok) {
       setStatus('success');
     } else {
       setStatus('error');
