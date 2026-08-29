@@ -10,3 +10,6 @@ next-env.d.ts
 *.pem
 npm-debug.log*
 .vercel
+
+# Local Netlify folder
+.netlify
