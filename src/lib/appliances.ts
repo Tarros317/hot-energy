@@ -38,11 +38,12 @@ export type ApplianceGroupId = 'essentials' | 'work' | 'kitchen' | 'home';
 /**
  * How the usage time is expressed and whether the visitor can change it.
  *
- * `fixed` is for appliances where the answer is physics, not preference. A
- * fridge is plugged in 24/7 and its compressor runs about a third of that —
- * asking someone to slide "hours per day" invites the wrong answer (24), which
- * would triple its real consumption. A router genuinely does draw its 12 W
- * around the clock. Neither gets a slider; both state their average instead.
+ * `fixed` is for appliances that are simply on around the clock — a fridge, a
+ * router, an alarm. They are counted at nameplate watts for all 24 hours: the
+ * bank divided by what the tile says, no hidden duty-cycle averaging. That
+ * understates a compressor appliance's real autonomy (the motor rests most of
+ * the hour), which is the safe direction for a promise on a sales page — the
+ * visitor gets MORE hours than the calculator told them, never fewer.
  */
 export type UsageUnit = 'fixed' | 'h' | 'min';
 
@@ -80,24 +81,23 @@ export const appliances: Appliance[] = [
   {
     id: 'fridge',
     name: 'Холодильник',
-    note: 'Увімкнений цілодобово, але компресор працює приблизно третину часу',
+    note: 'Тримає холод цілодобово; на старті компресора бере втричі більше',
     group: 'essentials',
     mode: 'always',
     watts: 120,
     startup: 3,
-    // 0.35 duty × 24 h — the compressor time, not the plug-in time.
-    hoursPerDay: 8.4,
+    hoursPerDay: 24,
     unit: 'fixed',
   },
   {
     id: 'freezer',
     name: 'Морозильна камера',
-    note: 'Теж циклами, трохи економніша за холодильник',
+    note: 'Працює цілодобово, трохи економніша за холодильник',
     group: 'essentials',
     mode: 'always',
     watts: 100,
     startup: 3,
-    hoursPerDay: 8.4,
+    hoursPerDay: 24,
     unit: 'fixed',
   },
   {

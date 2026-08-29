@@ -43,7 +43,9 @@ export function Hero() {
 
   const photoY = useTransform(scrollYProgress, [0, 1], ['0%', reduce ? '0%' : '18%']);
   const gridY = useTransform(scrollYProgress, [0, 1], ['0%', reduce ? '0%' : '10%']);
-  const contentY = useTransform(scrollYProgress, [0, 1], ['0%', reduce ? '0%' : '-6%']);
+  // Floored at the same progress as the fade: past 0.55 the plane sits at
+  // opacity 0.2 and per-frame style writes to it buy nothing visible.
+  const contentY = useTransform(scrollYProgress, [0, 0.55], ['0%', reduce ? '0%' : '-6%']);
   // Reaches its floor while the section is still on screen, so the compositor
   // stops being handed a new opacity every frame for the rest of the scroll.
   const contentFade = useTransform(scrollYProgress, [0, 0.55], [1, reduce ? 1 : 0.2]);
@@ -179,7 +181,7 @@ export function Hero() {
                 </button>
                 <a
                   href="#kalkulyator"
-                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl border border-white/14 px-7 text-[1rem] font-semibold text-frost backdrop-blur-sm transition-colors hover:border-ember-400/50 hover:bg-ember-400/5"
+                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl border border-white/14 bg-white/4 px-7 text-[1rem] font-semibold text-frost transition-colors hover:border-ember-400/50 hover:bg-ember-400/5"
                 >
                   Порахувати автономність
                 </a>
@@ -235,10 +237,10 @@ function Spec({ value, unit, label }: { value: string; unit: string; label: stri
   );
 }
 
-/** Inverter and battery drifting slightly out of phase — depth without weight. */
+/** Inverter and battery drifting slightly out of phase — depth without weight.
+ *  The floats are CSS keyframes now, and the global prefers-reduced-motion
+ *  rule in globals.css flattens them — no JS gate needed. */
 function FloatingProduct() {
-  const reduce = useReducedMotion();
-
   return (
     <div className="relative mx-auto hidden h-72 w-full max-w-sm lg:block">
       {/* Gradient, not a blurred fill — same glow, no offscreen filter pass. */}
@@ -253,40 +255,34 @@ function FloatingProduct() {
       {/* drop-shadow sits on the element that MOVES, not on the <img> inside
           it: with filter and transform on one layer Chrome rasterises the
           shadow once and re-translates the cached texture each frame. */}
-      <motion.div
-        className="absolute left-0 top-2 w-[58%] drop-shadow-[0_16px_32px_rgba(0,0,0,0.7)]"
-        style={{ willChange: 'transform' }}
-        animate={reduce ? undefined : { y: [0, -12, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+      <div
+        className="float-y absolute left-0 top-2 w-[58%] drop-shadow-[0_16px_32px_rgba(0,0,0,0.7)]"
+        style={{ '--float': '-12px', '--float-dur': '7s' } as React.CSSProperties}
       >
         <Image
           src={media.inverterAngle}
           alt={`Інвертор ${inverter.brand} ${inverter.model}`}
           width={1198}
           height={1502}
-          priority
-          quality={85}
+          quality={75}
           sizes="(max-width: 1024px) 0px, 220px"
           className="h-auto w-full"
         />
-      </motion.div>
-      <motion.div
-        className="absolute bottom-0 right-0 w-[62%] drop-shadow-[0_16px_32px_rgba(0,0,0,0.75)]"
-        style={{ willChange: 'transform' }}
-        animate={reduce ? undefined : { y: [0, 10, 0] }}
-        transition={{ duration: 8.5, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
+      </div>
+      <div
+        className="float-y absolute bottom-0 right-0 w-[62%] drop-shadow-[0_16px_32px_rgba(0,0,0,0.75)]"
+        style={{ '--float': '10px', '--float-dur': '8.5s', animationDelay: '0.6s' } as React.CSSProperties}
       >
         <Image
           src={media.battery}
           alt={`Акумулятор ${battery.brand} ${battery.model}`}
           width={1290}
           height={871}
-          priority
-          quality={85}
+          quality={75}
           sizes="(max-width: 1024px) 0px, 240px"
           className="h-auto w-full"
         />
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, useInView, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
 import { inverter } from '@/lib/kit';
 
@@ -24,6 +24,12 @@ const NEXT: Record<Phase, Phase> = { grid: 'switch', switch: 'battery', battery:
 
 export function PowerStatus({ className }: { className?: string }) {
   const reduce = useReducedMotion();
+  // The telemetry loop re-renders this panel every 620 ms for the page's whole
+  // lifetime — including while the visitor reads the FAQ three screens down.
+  // Gate the timers on visibility; the panel freezes mid-state off-screen and
+  // resumes exactly where it was, which nobody can observe.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(rootRef, { amount: 0.15 });
   const [loopPhase, setLoopPhase] = useState<Phase>('grid');
   const [charge, setCharge] = useState(74);
 
@@ -32,15 +38,15 @@ export function PowerStatus({ className }: { className?: string }) {
   const phase: Phase = reduce ? 'battery' : loopPhase;
 
   useEffect(() => {
-    if (reduce) return;
+    if (reduce || !inView) return;
     const t = setTimeout(() => setLoopPhase(NEXT[loopPhase]), DURATIONS[loopPhase]);
     return () => clearTimeout(t);
-  }, [loopPhase, reduce]);
+  }, [loopPhase, reduce, inView]);
 
   // Charge creeps up on mains and down on battery — slow enough to read as
   // real telemetry rather than a progress bar toy.
   useEffect(() => {
-    if (reduce) return;
+    if (reduce || !inView) return;
     const id = setInterval(() => {
       setCharge((c) => {
         if (phase === 'grid') return Math.min(96, c + 1);
@@ -49,7 +55,7 @@ export function PowerStatus({ className }: { className?: string }) {
       });
     }, 620);
     return () => clearInterval(id);
-  }, [phase, reduce]);
+  }, [phase, reduce, inView]);
 
   const onGrid = phase === 'grid';
   // 4,02 kWh of usable energy against a ~600 W household draw.
@@ -64,6 +70,7 @@ export function PowerStatus({ className }: { className?: string }) {
       // render pass per frame for pixels that can never be seen. `contain:
       // paint` keeps the 620 ms telemetry ticks from dirtying tiles of the
       // shared hero surface this panel sits on.
+      ref={rootRef}
       style={{ contain: 'paint' }}
       className={cn('panel relative overflow-hidden rounded-2xl p-4 sm:p-5', className)}
     >
@@ -77,10 +84,9 @@ export function PowerStatus({ className }: { className?: string }) {
           Sinus PRO Ultra · статус
         </p>
         <span className="flex items-center gap-1.5">
-          <motion.span
+          <span
             className={cn('size-1.5 rounded-full', onGrid ? 'bg-mist' : 'bg-volt-400')}
-            animate={reduce ? undefined : { opacity: [1, 0.35, 1] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ animation: 'blink-dot 1.8s ease-in-out infinite' }}
           />
           <span className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-mist">
             {onGrid ? 'Мережа' : 'Батарея'}
@@ -114,7 +120,7 @@ export function PowerStatus({ className }: { className?: string }) {
           {Array.from({ length: 12 }).map((_, i) => {
             const lit = charge >= ((i + 1) / 12) * 100 - 4;
             return (
-              <motion.span
+              <span
                 key={i}
                 className={cn(
                   'h-2.5 flex-1 rounded-[3px]',
@@ -124,8 +130,14 @@ export function PowerStatus({ className }: { className?: string }) {
                       : 'bg-gradient-to-b from-ember-300 to-ember-500'
                     : 'bg-white/8',
                 )}
-                animate={reduce || !lit ? undefined : { opacity: [0.75, 1, 0.75] }}
-                transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.06 }}
+                style={
+                  lit
+                    ? {
+                        animation: 'seg-breathe 2.4s ease-in-out infinite',
+                        animationDelay: `${i * 0.06}s`,
+                      }
+                    : undefined
+                }
               />
             );
           })}

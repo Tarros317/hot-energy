@@ -166,12 +166,6 @@ export function formatHours(h: number): { value: string; unit: string } {
   return { value: `${hours} год ${String(minutes).padStart(2, '0')}`, unit: 'хв' };
 }
 
-/** How many outages of `blockHours` the bank covers on one charge. */
-export function blackoutBlocks(hours: number, blockHours = 4): number {
-  if (!Number.isFinite(hours) || blockHours <= 0) return 0;
-  return Math.floor(hours / blockHours);
-}
-
 /* ── Outage schedule ─────────────────────────────────────────────
    The honest answer to "how long does this last on my schedule" is NOT a
    per-day energy balance. That framing was wrong in a way that mattered: a

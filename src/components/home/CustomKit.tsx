@@ -119,7 +119,7 @@ export function CustomKit() {
               </div>
 
               {/* Form */}
-              <div className="panel rounded-3xl p-5 backdrop-blur-md sm:p-7">
+              <div className="panel rounded-3xl p-5 sm:p-7">
                 <AnimatePresence mode="wait" initial={false}>
                   {status === 'success' ? (
                     <motion.div

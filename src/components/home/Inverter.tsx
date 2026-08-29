@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
 import { Activity, Snowflake, SunMedium, Timer, Waves, Wifi } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { Reveal, RevealItem } from '@/components/ui/Reveal';
@@ -94,27 +94,27 @@ export function Inverter() {
           {/* Sticky product plinth */}
           <div className="lg:sticky lg:top-28 lg:self-start">
             <Reveal>
-              <div className="relative flex items-center justify-center overflow-hidden rounded-3xl border border-white/8 bg-gradient-to-b from-ink-850 to-ink-950 px-6 py-10 sm:py-14">
+              {/* Light studio card: the unit's casing is white, so it needs a
+                  light ground to read as a product rather than as a hole in
+                  the page. The soft bottom shade keeps it from floating. */}
+              <div className="relative flex items-center justify-center overflow-hidden rounded-3xl border border-white/12 bg-gradient-to-b from-white to-[#e7ebf0] px-6 py-8 sm:py-10">
                 <div
                   aria-hidden
-                  className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ember-500/18 blur-3xl"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
+                  style={{
+                    background:
+                      'radial-gradient(60% 100% at 50% 100%, rgba(15,23,32,0.16) 0%, transparent 70%)',
+                  }}
                 />
-                <div aria-hidden className="grid-lines absolute inset-0 opacity-50" />
-                <motion.div
-                  animate={reduce ? undefined : { y: [0, -10, 0] }}
-                  transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-                  className="relative"
-                >
-                  <Image
-                    src={media.inverterFront}
-                    alt={`Інвертор ${inverter.brand} ${inverter.model}, вигляд спереду`}
-                    width={1209}
-                    height={1384}
-                    quality={85}
-                    sizes="(max-width: 1024px) 70vw, 380px"
-                    className="mx-auto h-auto w-full max-w-[17rem] drop-shadow-[0_28px_56px_rgba(0,0,0,0.7)]"
-                  />
-                </motion.div>
+                <Image
+                  src={media.inverterFrontStudio}
+                  alt={`Інвертор ${inverter.brand} ${inverter.model}, вигляд спереду`}
+                  width={1319}
+                  height={1493}
+                  quality={75}
+                  sizes="(max-width: 1024px) 70vw, 380px"
+                  className="relative mx-auto h-auto w-full max-w-[17rem]"
+                />
               </div>
             </Reveal>
 

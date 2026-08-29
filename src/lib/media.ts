@@ -37,4 +37,13 @@ export const media = {
   inverterFront: '/images/inverter-front.png',
   inverterAngle: '/images/inverter-angle.png',
   battery: '/images/battery.png',
+
+  /** Reconstructed studio shots (product on white), for light panels.
+   *  The cutout variants above flood-filled the background away — and with it
+   *  the inverter's own white casing, which on a dark page rendered as a hole.
+   *  Every deleted pixel WAS white, so compositing back over white restores
+   *  the original photograph exactly; these sit on light cards instead. */
+  inverterFrontStudio: '/images/inverter-front-studio.png',
+  inverterAngleStudio: '/images/inverter-angle-studio.png',
+  batteryStudio: '/images/battery-studio.png',
 } as const;

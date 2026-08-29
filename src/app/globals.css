@@ -219,7 +219,11 @@ body::before {
   background-size: 64px 64px;
 }
 
-/* Film grain (data-URI noise, zero requests) keeps large flat darks alive. */
+/* Film grain (data-URI noise, zero requests) keeps large flat darks alive.
+   Desktop-only: it is a fixed full-viewport layer composited over everything
+   on every frame, and at 4 % opacity a phone GPU pays for texture nobody can
+   see on a small bright screen. */
+@media (min-width: 1024px) {
 .grain::after {
   content: '';
   position: fixed;
@@ -229,6 +233,39 @@ body::before {
   opacity: 0.04;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 220px 220px;
+}
+}
+
+/* Decorative loops, CSS-driven so they run on the compositor thread instead
+   of Motion's rAF loop — seven infinite JS tweens were waking the main thread
+   every frame for the lifetime of the page. The global reduced-motion rule
+   above flattens all of these to a single instant frame. */
+@keyframes float-y {
+  50% { transform: translateY(var(--float, -10px)); }
+}
+.float-y {
+  animation: float-y var(--float-dur, 8s) ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes hero-glow-a {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.12); opacity: 0.8; }
+}
+@keyframes hero-glow-b {
+  0%, 100% { transform: scale(1.08); opacity: 0.45; }
+  50% { transform: scale(1); opacity: 0.7; }
+}
+@keyframes hero-glow-c {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes seg-breathe {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
 }
 
 /* Card surface used across sections — one recipe, so elevation stays uniform. */

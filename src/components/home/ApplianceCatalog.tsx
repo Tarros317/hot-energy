@@ -219,7 +219,7 @@ export function ApplianceCatalog({
               ) : (
                 sections.map(({ group, items }) => (
                   <section key={group.id} className="mb-5 last:mb-1">
-                    <h3 className="sticky top-0 z-10 -mx-1 bg-ink-950/95 px-1 py-1.5 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-ash backdrop-blur-sm">
+                    <h3 className="sticky top-0 z-10 -mx-1 bg-ink-950 px-1 py-1.5 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-ash">
                       {group.label}
                     </h3>
                     <ul className="mt-1 space-y-1.5">

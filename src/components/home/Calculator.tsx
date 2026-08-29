@@ -22,7 +22,15 @@ import {
   formatSpan,
   plural,
 } from '@/components/home/CalculatorResult';
-import { ApplianceCatalog } from '@/components/home/ApplianceCatalog';
+import dynamic from 'next/dynamic';
+
+// The catalogue sheet is real UI only after «Додати прилад» is pressed;
+// splitting it keeps its markup, search index and focus-trap code out of the
+// synchronous below-the-fold bundle.
+const ApplianceCatalog = dynamic(
+  () => import('@/components/home/ApplianceCatalog').then((m) => m.ApplianceCatalog),
+  { ssr: false },
+);
 import { openLeadModal } from '@/components/lead/LeadModal';
 import { LEAD_FORMS } from '@/lib/lead-forms';
 import {
@@ -36,7 +44,6 @@ import {
   type Appliance,
 } from '@/lib/appliances';
 import {
-  blackoutBlocks,
   calculate,
   formatHours,
   sustainability,
@@ -123,9 +130,20 @@ export function Calculator() {
     setSelection((prev) => (prev[id] ? { ...prev, [id]: { ...prev[id], hours } } : prev));
   }, []);
 
+  // Functional update, no `selection` dependency: with `selection` in the
+  // deps this callback got a new identity on every keystroke of every slider,
+  // which invalidated the memo() on all 20+ tiles at once.
   const toggle = useCallback(
-    (a: Appliance) => setQty(a.id, selection[a.id]?.qty ? 0 : 1),
-    [selection, setQty],
+    (a: Appliance) => {
+      setActivePreset(null);
+      setSelection((prev) => {
+        const next = { ...prev };
+        if (prev[a.id]?.qty) delete next[a.id];
+        else next[a.id] = { qty: 1, hours: prev[a.id]?.hours ?? a.hoursPerDay };
+        return next;
+      });
+    },
+    [],
   );
 
   const applyPreset = (id: string) => {
@@ -189,8 +207,6 @@ export function Calculator() {
   const naiveDays = usableWh(1) / routerW / 24;
   const realDays = usableWh(1) / (routerW / INVERTER_EFFICIENCY + inverter.idleW) / 24;
 
-  const blockHours = offHours > 0 ? offHours : 4;
-  const blocks = blackoutBlocks(result.hours, blockHours);
   const bankKwh = ((battery.energyWh * batteries) / 1000).toFixed(1).replace('.', ',');
 
   return (
@@ -198,7 +214,13 @@ export function Calculator() {
       {/* Decoration is clipped HERE, not on the section — see the note above. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="grid-lines absolute inset-0 opacity-35" />
-        <div className="absolute left-1/2 top-0 h-96 w-[52rem] -translate-x-1/2 rounded-full bg-ember-500/8 blur-3xl" />
+        <div
+          className="absolute left-1/2 top-0 h-[30rem] w-[64rem] -translate-x-1/2"
+          style={{
+            background:
+              'radial-gradient(ellipse 50% 50% at 50% 50%, rgba(246,133,14,0.07) 0%, rgba(246,133,14,0.03) 45%, transparent 75%)',
+          }}
+        />
       </div>
 
       <Container className="relative">
@@ -397,13 +419,6 @@ export function Calculator() {
                             </span>
                           )}
                         </p>
-                        {blocks > 0 && (
-                          <p className="mt-1.5 text-[0.72rem] leading-snug text-mist">
-                            ≈ {blocks}{' '}
-                            {plural(blocks, 'відключення', 'відключення', 'відключень')} по{' '}
-                            {blockHours} год
-                          </p>
-                        )}
                         {/* The inverter's own draw is named here rather than
                             folded into an average: on a small load it IS the
                             load, and hiding it makes the hours look wrong. */}
@@ -573,7 +588,7 @@ function MobilePeek({
       className="sticky z-40 -mx-5 mt-6 px-5 lg:hidden"
       style={{ top: 'calc(var(--header-h) + env(safe-area-inset-top, 0px) + 0.5rem)' }}
     >
-      <div className="panel overflow-hidden rounded-2xl backdrop-blur-xl">
+      <div className="panel overflow-hidden rounded-2xl">
         <button
           type="button"
           onClick={onToggle}

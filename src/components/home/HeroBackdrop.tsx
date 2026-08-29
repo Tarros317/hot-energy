@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
 
 /**
  * Animated hero backdrop: a bus-bar schematic with current running through it.
@@ -35,7 +35,10 @@ const RAILS = [
   { d: 'M-40 210 H360 L440 290 H900 L980 210 H1480', delay: 0 },
   { d: 'M-40 430 H240 L320 350 H700 L780 430 H1180 L1260 500 H1480', delay: -0.9 },
   { d: 'M-40 660 H420 L500 590 H860 L940 660 H1480', delay: -1.8 },
-  { d: 'M-40 830 H620 L700 760 H1120 L1200 830 H1480', delay: -2.6 },
+  // -2.7, not -2.6: delays must sit on the 0.15 s step grid (2.4 s / 16)
+  // so all four rails advance on the same tick and their invalidations
+  // coalesce into one repaint instead of two interleaved ones.
+  { d: 'M-40 830 H620 L700 760 H1120 L1200 830 H1480', delay: -2.7 },
 ];
 
 const NODES = [
@@ -52,36 +55,36 @@ export function HeroBackdrop() {
 
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      {/* Breathing ember glows — the "power is on somewhere" light. */}
-      <motion.div
-        className="absolute top-[-1%] -left-64 h-[50rem] w-[50rem] rounded-full opacity-70"
+      {/* Breathing ember glows — the "power is on somewhere" light.
+          CSS keyframes, not Motion: three infinite scale/opacity tweens were
+          waking the main thread every frame for the whole session; the CSS
+          equivalents run on the compositor and cost the main thread nothing. */}
+      <div
+        className="absolute top-[-1%] -left-64 h-[50rem] w-[50rem] rounded-full"
         style={{
           background:
             'radial-gradient(circle, rgba(246,133,14,0.20) 0%, rgba(246,133,14,0.09) 30%, rgba(246,133,14,0.03) 55%, transparent 78%)',
+          animation: 'hero-glow-a 11s ease-in-out infinite',
           willChange: 'transform, opacity',
         }}
-        animate={reduce ? undefined : { scale: [1, 1.12, 1], opacity: [0.55, 0.8, 0.55] }}
-        transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
       />
-      <motion.div
-        className="absolute top-[30%] -right-52 h-[42rem] w-[42rem] rounded-full opacity-60"
+      <div
+        className="absolute top-[30%] -right-52 h-[42rem] w-[42rem] rounded-full"
         style={{
           background:
             'radial-gradient(circle, rgba(255,165,36,0.16) 0%, rgba(255,165,36,0.07) 32%, rgba(255,165,36,0.02) 58%, transparent 80%)',
+          animation: 'hero-glow-b 13s ease-in-out infinite',
           willChange: 'transform, opacity',
         }}
-        animate={reduce ? undefined : { scale: [1.08, 1, 1.08], opacity: [0.45, 0.7, 0.45] }}
-        transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut' }}
       />
-      <motion.div
+      <div
         className="absolute bottom-[-18%] left-[29%] h-[36rem] w-[36rem] rounded-full opacity-50"
         style={{
           background:
             'radial-gradient(circle, rgba(53,227,155,0.12) 0%, rgba(53,227,155,0.05) 34%, transparent 76%)',
+          animation: 'hero-glow-c 16s ease-in-out infinite',
           willChange: 'transform',
         }}
-        animate={reduce ? undefined : { scale: [1, 1.18, 1] }}
-        transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
       />
 
       {/* Bus-bar schematic */}

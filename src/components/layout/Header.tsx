@@ -64,14 +64,16 @@ export function Header() {
           initial={{ y: -22, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          // The blur radius is CONSTANT and is never transitioned. Animating
-          // backdrop-filter re-derives the Gaussian at a new sigma on every
-          // frame of the 500 ms window, and that window opens at 24 px of
-          // scroll — exactly when the hero is busiest. Crossfading the tint
-          // alone is indistinguishable over a near-black bar.
+          // backdrop-blur only while the bar is translucent over the hero
+          // photo — that is the one state where it produces visible pixels.
+          // Once scrolled the tint is near-opaque, and a fixed blurred bar
+          // would re-filter its strip of backdrop on 100 % of scroll frames
+          // for nothing.
           className={cn(
-            'mx-auto flex w-full max-w-7xl items-center justify-between gap-4 rounded-2xl border px-3 py-2.5 backdrop-blur-md transition-[background-color,border-color] duration-500 sm:px-4',
-            scrolled || menuOpen ? 'border-white/10 bg-abyss/85' : 'border-white/6 bg-abyss/25',
+            'mx-auto flex w-full max-w-7xl items-center justify-between gap-4 rounded-2xl border px-3 py-2.5 transition-[background-color,border-color] duration-500 sm:px-4',
+            scrolled || menuOpen
+              ? 'border-white/10 bg-abyss/95'
+              : 'border-white/6 bg-abyss/25 backdrop-blur-md',
           )}
         >
           <a href="#top" aria-label="Hot Energy — на початок" className="flex shrink-0 items-center py-1.5 pl-1">
@@ -149,7 +151,7 @@ export function Header() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             data-lenis-prevent
-            className="fixed inset-0 z-80 overflow-y-auto overscroll-contain bg-abyss/97 backdrop-blur-xl lg:hidden"
+            className="fixed inset-0 z-80 overflow-y-auto overscroll-contain bg-ink-950 lg:hidden"
           >
             <motion.nav
               aria-label="Мобільна навігація"
@@ -224,7 +226,7 @@ export function Header() {
       </AnimatePresence>
 
       {/* Persistent phone action bar — the thumb never has to hunt for a CTA. */}
-      <div className="fixed inset-x-0 bottom-0 z-70 grid grid-cols-2 gap-px border-t border-white/8 bg-abyss/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-70 grid grid-cols-2 gap-px border-t border-white/8 bg-abyss/95 pb-[env(safe-area-inset-bottom)] sm:hidden">
         <a
           href={site.phone.href}
           className="flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-frost"

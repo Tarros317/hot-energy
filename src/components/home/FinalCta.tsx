@@ -55,7 +55,7 @@ export function FinalCta() {
             </button>
             <a
               href={site.phone.href}
-              className="inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-xl border border-white/15 px-7 text-[1rem] font-semibold text-frost backdrop-blur-sm transition-colors hover:border-ember-400/50 hover:bg-ember-400/5 sm:w-auto"
+              className="inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/4 px-7 text-[1rem] font-semibold text-frost transition-colors hover:border-ember-400/50 hover:bg-ember-400/5 sm:w-auto"
             >
               <Phone aria-hidden className="size-4 text-ember-400" />
               <span className="tnum">{site.phone.display}</span>

@@ -15,7 +15,7 @@ import {
 import { cn } from '@/lib/utils';
 import { ApplianceIcon } from '@/components/ui/ApplianceIcon';
 import { battery, inverter, kit } from '@/lib/kit';
-import { blackoutBlocks, formatHours, type CalcResult, type Sustainability } from '@/lib/calc';
+import { formatHours, type CalcResult, type Sustainability } from '@/lib/calc';
 
 /* ── Autonomy dial ───────────────────────────────────────────────────────
    A 250° arc scaled 0–24 h. Past 24 h the arc simply stays full: the point of
@@ -43,7 +43,6 @@ export function AutonomyDial({
   const capped = Math.min(Number.isFinite(hours) ? hours : 0, 24);
   const progress = capped / 24;
   const { value, unit } = formatHours(hours);
-  const blocks = blackoutBlocks(hours);
 
   const finite = Number.isFinite(hours) && hours > 0;
   const h = finite ? Math.floor(hours) : 0;
@@ -124,11 +123,6 @@ export function AutonomyDial({
               <span className="tnum text-[2.1rem] font-bold leading-none text-cloud">{value}</span>
               {unit && <span className="text-sm font-semibold text-ember-400">{unit}</span>}
             </p>
-            {blocks > 0 && (
-              <p className="mt-2 text-[0.7rem] leading-snug text-mist">
-                ≈ {blocks} {plural(blocks, 'відключення', 'відключення', 'відключень')} по 4 год
-              </p>
-            )}
           </>
         )}
       </div>
@@ -292,11 +286,13 @@ export function Breakdown({
           {visible.map((line) => (
             <motion.li
               key={line.appliance.id}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
+              // Opacity only: tweening height mutates a layout property every
+              // frame, and a preset switch enters/exits many rows at once —
+              // each one reflowing the whole sticky panel per frame.
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
             >
               <div className="flex items-center gap-2.5">
                 <ApplianceIcon id={line.appliance.id} className="size-4 shrink-0 text-ember-400" />

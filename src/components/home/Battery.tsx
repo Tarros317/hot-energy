@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
 import { Bluetooth, Droplets, Layers, ShieldCheck, Thermometer, Weight } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { Reveal, RevealItem } from '@/components/ui/Reveal';
@@ -80,7 +80,10 @@ export function Battery() {
           Inverter.tsx: `overflow-hidden` there would kill the sticky column. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="grid-lines absolute inset-0 opacity-40" />
-        <div className="absolute -left-40 top-1/3 h-96 w-96 rounded-full bg-ember-500/10 blur-3xl" />
+        <div
+          className="absolute -left-60 top-1/4 h-[34rem] w-[34rem]"
+          style={{ background: 'radial-gradient(circle, rgba(246,133,14,0.12) 0%, rgba(246,133,14,0.05) 45%, transparent 75%)' }}
+        />
       </div>
 
       <Container className="relative">
@@ -91,23 +94,26 @@ export function Battery() {
               <div className="relative flex items-center justify-center overflow-hidden rounded-3xl border border-white/8 bg-gradient-to-b from-ink-850 to-ink-950 px-6 py-10">
                 <div
                   aria-hidden
-                  className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ember-500/20 blur-3xl"
+                  className="pointer-events-none absolute left-1/2 top-1/2 h-[24rem] w-[26rem] -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    background:
+                      'radial-gradient(circle, rgba(246,133,14,0.14) 0%, rgba(246,133,14,0.05) 48%, transparent 74%)',
+                  }}
                 />
-                <motion.div
-                  animate={reduce ? undefined : { y: [0, -9, 0] }}
-                  transition={{ duration: 8.5, repeat: Infinity, ease: 'easeInOut' }}
-                  className="relative w-full"
+                <div
+                  className="float-y relative w-full"
+                  style={{ '--float': '-9px', '--float-dur': '8.5s' } as React.CSSProperties}
                 >
                   <Image
                     src={media.battery}
                     alt={`Акумулятор ${battery.brand} ${battery.model}`}
                     width={1290}
                     height={871}
-                    quality={85}
+                    quality={75}
                     sizes="(max-width: 1024px) 85vw, 420px"
                     className="mx-auto h-auto w-full max-w-sm drop-shadow-[0_28px_56px_rgba(0,0,0,0.75)]"
                   />
-                </motion.div>
+                </div>
               </div>
             </Reveal>
 

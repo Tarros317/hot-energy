@@ -135,7 +135,7 @@ export function PowerFlow() {
                       reduce
                         ? undefined
                         : {
-                            animation: 'flow 1.6s linear infinite',
+                            animation: 'flow 1.6s steps(16) infinite',
                             animationDelay: `${priority * -0.4}s`,
                           }
                     }
@@ -161,7 +161,7 @@ export function PowerFlow() {
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeDasharray="6 12"
-            style={reduce ? undefined : { animation: 'flow 1.2s linear infinite' }}
+            style={reduce ? undefined : { animation: 'flow 1.2s steps(12) infinite' }}
           />
 
           {/* Source nodes */}

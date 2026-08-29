@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
 import { ArrowRight, Check, PackageCheck } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { Reveal, RevealItem } from '@/components/ui/Reveal';
@@ -49,34 +49,32 @@ export function Kit() {
             eyebrow="Мозок системи"
             title={inverter.model}
             brand={inverter.brand}
-            image={media.inverterAngle}
+            image={media.inverterAngleStudio}
             imageAlt={`Інвертор ${inverter.brand} ${inverter.model}`}
-            width={1198}
-            height={1502}
+            width={1318}
+            height={1621}
             imageClass="max-h-[15rem] sm:max-h-[17rem]"
             specs={[
               { k: 'Потужність', v: `${inverter.powerW} Вт · ${inverter.peakVA} ВА пік` },
               { k: 'Перемикання', v: `${inverter.transferMsPc} мс` },
               { k: 'Сонячний контролер', v: `MPPT ${inverter.mppt.currentA} А, вбудований` },
             ]}
-            reduce={reduce}
           />
           <ProductCard
             href="#akumulyator"
             eyebrow="Запас енергії"
             title={battery.model}
             brand={battery.brand}
-            image={media.battery}
+            image={media.batteryStudio}
             imageAlt={`Акумулятор ${battery.brand} ${battery.model}`}
-            width={1290}
-            height={871}
+            width={1394}
+            height={975}
             imageClass="max-h-[13rem] sm:max-h-[15rem]"
             specs={[
               { k: 'Ємність', v: '4 019 Вт·год (4,02 кВт·год)' },
               { k: 'Ресурс', v: `${battery.cycles.toLocaleString('uk-UA')} циклів` },
               { k: 'Захист', v: `BMS ${battery.bmsA} А, ${battery.ip}` },
             ]}
-            reduce={reduce}
           />
         </div>
 
@@ -104,7 +102,11 @@ export function Kit() {
           <Reveal className="relative overflow-hidden rounded-3xl border border-ember-400/25 bg-gradient-to-br from-ember-500/12 via-ink-900 to-ink-950 p-6 sm:p-8">
             <div
               aria-hidden
-              className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-ember-500/25 blur-3xl"
+              className="pointer-events-none absolute -right-24 -top-24 h-72 w-72"
+              style={{
+                background:
+                  'radial-gradient(circle, rgba(246,133,14,0.16) 0%, rgba(246,133,14,0.06) 45%, transparent 72%)',
+              }}
             />
             <div className="relative">
               <p className="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-ember-300">
@@ -157,7 +159,6 @@ function ProductCard({
   height,
   imageClass,
   specs,
-  reduce,
 }: {
   href: string;
   eyebrow: string;
@@ -169,31 +170,38 @@ function ProductCard({
   height: number;
   imageClass: string;
   specs: { k: string; v: string }[];
-  reduce: boolean | null;
 }) {
   return (
     <Reveal className="panel group relative overflow-hidden rounded-3xl p-6 sm:p-8">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-8 h-64 w-64 -translate-x-1/2 rounded-full bg-ember-500/14 blur-3xl transition-opacity duration-500 group-hover:bg-ember-500/22"
-      />
-
-      <div className="relative flex h-52 items-center justify-center sm:h-60">
-        <motion.div
-          animate={reduce ? undefined : { y: [0, -8, 0] }}
-          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-          className="flex h-full items-center"
+      {/* Studio panel: both products photograph on white, and a white ground
+          is the one place the white-cased inverter actually looks like the
+          object being sold. */}
+      <div className="relative flex h-52 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-white to-[#e9edf1] sm:h-60">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-16"
+          style={{
+            background:
+              'radial-gradient(60% 100% at 50% 100%, rgba(15,23,32,0.14) 0%, transparent 70%)',
+          }}
+        />
+        <div
+          className="float-y flex h-full items-center py-4"
+          style={{ '--float': '-8px', '--float-dur': '7s' } as React.CSSProperties}
         >
           <Image
             src={image}
             alt={imageAlt}
             width={width}
             height={height}
-            quality={85}
+            quality={75}
             sizes="(max-width: 1024px) 80vw, 380px"
-            className={`w-auto object-contain drop-shadow-[0_20px_44px_rgba(0,0,0,0.65)] ${imageClass}`}
+            // h-full, not just max-h: with both axes auto the box is 0x0
+            // until the file arrives (attributes feed aspect-ratio, not
+            // intrinsic size), so the card would jump when the image lands.
+            className={`h-full w-auto object-contain ${imageClass}`}
           />
-        </motion.div>
+        </div>
       </div>
 
       <div className="relative mt-6">

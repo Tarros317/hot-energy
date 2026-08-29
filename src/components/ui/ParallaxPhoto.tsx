@@ -2,14 +2,16 @@
 
 import { useRef } from 'react';
 import Image from 'next/image';
-import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'motion/react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { cn } from '@/lib/utils';
 
 /**
  * Full-bleed photograph with a scroll-driven parallax drift. The image is
  * rendered taller than its frame and slides as the section crosses the
- * viewport. Transform-only (compositor thread), spring-smoothed so wheel
- * jitter doesn't reach the pixels, and flattened under reduced-motion.
+ * viewport. Transform-only, driven straight off the scroll signal: Lenis
+ * already low-passes wheel input, and a second spring on top of it reads as
+ * lag, not smoothness — while costing a settling animation after every
+ * scroll event. Flattened under reduced-motion.
  */
 export function ParallaxPhoto({
   src,
@@ -34,16 +36,18 @@ export function ParallaxPhoto({
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
-  const raw = useTransform(
+  const y = useTransform(
     scrollYProgress,
     [0, 1],
     reduce ? ['0%', '0%'] : [`-${amount}%`, `${amount}%`],
   );
-  const y = useSpring(raw, { stiffness: 120, damping: 26, mass: 0.4 });
 
   return (
     <div ref={ref} className={cn('relative overflow-hidden bg-ink-900', className)}>
-      <motion.div style={{ y }} className="absolute inset-x-0 -top-[15%] h-[130%]">
+      <motion.div
+        style={{ y, willChange: 'transform' }}
+        className="absolute inset-x-0 -top-[15%] h-[130%]"
+      >
         <Image
           src={src}
           alt={alt}

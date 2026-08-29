@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { animate, useInView, useReducedMotion } from 'motion/react';
 
 /**
@@ -29,11 +29,18 @@ export function Counter({
   const inView = useInView(ref, { once: true, amount: 0.5 });
   const reduce = useReducedMotion();
 
-  const format = (n: number) =>
-    `${prefix}${n.toLocaleString('uk-UA', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    })}${suffix}`;
+  // One cached formatter, not toLocaleString per frame: each call to
+  // toLocaleString constructs a fresh Intl.NumberFormat, and onUpdate runs
+  // it 60x/s per visible counter — exactly while the section scrolls in.
+  const nf = useMemo(
+    () =>
+      new Intl.NumberFormat('uk-UA', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      }),
+    [decimals],
+  );
+  const format = (n: number) => `${prefix}${nf.format(n)}${suffix}`;
 
   useEffect(() => {
     const el = ref.current;
