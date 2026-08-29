@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 48" width="260" height="48">
+  <defs>
+    <linearGradient id="e" x1="6" y1="4" x2="34" y2="37" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD79A"/>
+      <stop offset=".45" stop-color="#FFA524"/>
+      <stop offset="1" stop-color="#E1710A"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(2 4)">
+    <rect x="15.5" y="3" width="9" height="4.6" rx="2.3" fill="url(#e)"/>
+    <rect x="4.6" y="7.8" width="30.8" height="29.2" rx="8.4" fill="none" stroke="url(#e)" stroke-width="2.6"/>
+    <path d="M23.4 12.6 14.4 23.9h4.8l-2.2 9.3 9-11.4h-4.9z" fill="url(#e)"/>
+  </g>
+  <text x="50" y="31" font-family="Unbounded, Manrope, system-ui, sans-serif" font-size="19" font-weight="600" letter-spacing="-0.4" fill="#FFFFFF">HOT</text>
+  <text x="104" y="31" font-family="Unbounded, Manrope, system-ui, sans-serif" font-size="19" font-weight="600" letter-spacing="-0.4" fill="#FFA524">ENERGY</text>
+</svg>
