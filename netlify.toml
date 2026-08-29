@@ -1,0 +1,22 @@
+# Netlify build settings.
+#
+# Without this file Netlify has to guess how to serve a Next.js app. When the
+# guess misses, it publishes a directory that has no index.html at its root and
+# every URL answers 404 — even though the build itself succeeded, which is
+# exactly what the deploy log showed: all five stages green, site empty.
+#
+# The Next.js Runtime is the piece that turns `.next` into edge-served static
+# assets plus functions for anything rendered on demand. This page is almost
+# entirely prerendered; /api/zayavka is the one route that needs a function.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Next 16 needs Node 20.9+. Pinning keeps the build off whatever default the
+  # platform moves to next.
+  NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
