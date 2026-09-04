@@ -65,7 +65,7 @@ const SPECS: { k: string; v: string }[] = [
   { k: 'Саморозряд', v: battery.selfDischarge },
   { k: 'Паралельне з’єднання', v: `до ${battery.maxParallel} шт` },
   { k: 'Сертифікати', v: battery.certificates.join(', ') },
-  { k: 'Гарантія', v: `${battery.warrantyYears} років` },
+  { k: 'Гарантія', v: `${battery.warrantyMonths} місяців` },
 ];
 
 export function Battery() {

@@ -71,8 +71,8 @@ export function FinalCta() {
               label="ресурс акумулятора"
             />
             <Stat
-              value={<Counter to={battery.warrantyYears} />}
-              unit="років"
+              value={<Counter to={battery.warrantyMonths} />}
+              unit="місяців"
               label="гарантія на АКБ"
             />
           </dl>

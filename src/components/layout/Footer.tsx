@@ -47,7 +47,7 @@ export function Footer() {
               <li>4,02 кВт·год ємності</li>
               <li>{inverter.powerW} Вт · {inverter.peakVA} ВА пік</li>
               <li>MPPT {inverter.mppt.currentA} А у комплекті</li>
-              <li>{battery.warrantyYears} років гарантії на АКБ</li>
+              <li>{battery.warrantyMonths} місяців гарантії на АКБ</li>
               <li>{site.serviceArea}</li>
             </ul>
           </div>

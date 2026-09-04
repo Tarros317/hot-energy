@@ -194,7 +194,7 @@ export function Hero() {
                 <Spec value="4,02" unit="кВт·год" label="Ємність банку" />
                 <Spec value={String(inverter.powerW)} unit="Вт" label={`Пік ${inverter.peakVA} ВА`} />
                 <Spec value={String(inverter.mppt.currentA)} unit="А MPPT" label="Готовий до панелей" />
-                <Spec value={String(battery.warrantyYears)} unit="років" label="Гарантія на АКБ" />
+                <Spec value={String(battery.warrantyMonths)} unit="місяців" label="Гарантія на АКБ" />
               </motion.ul>
             </div>
 

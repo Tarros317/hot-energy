@@ -67,7 +67,7 @@ export const battery = {
   selfDischarge: '≤ 3 % на місяць',
   bluetooth: 'Bluetooth 5.0 + застосунок HumSienk Smart BMS',
   maxParallel: 4,
-  warrantyYears: 5,
+  warrantyMonths: 12,
   certificates: ['IEC62619', 'CE-EMC', 'CE-RoHS', 'UN38.3', 'FCC'],
 } as const;
 
